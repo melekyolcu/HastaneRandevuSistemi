@@ -1,10 +1,10 @@
 # Hastane / Klinik Randevu Sistemi
-
+MELEK YOLCU 
 Nesneye Dayalı Programlama dersi projesi.
 
 ## Teknolojiler
 - C# / ASP.NET Core MVC
-- PostgreSQL (Entity Framework Core)
+- PostgreSQL 
 
 ## Mimari
 Katmanlı mimari (N-Tier):
