@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HastaneRandevu.Business/HastaneRandevu.Business.csproj" />
+    <Project Path="src/HastaneRandevu.DataAccess/HastaneRandevu.DataAccess.csproj" />
+    <Project Path="src/HastaneRandevu.Entities/HastaneRandevu.Entities.csproj" />
+    <Project Path="src/HastaneRandevu.WebUI/HastaneRandevu.WebUI.csproj" />
+  </Folder>
+</Solution>
