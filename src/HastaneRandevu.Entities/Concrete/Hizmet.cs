@@ -46,6 +46,9 @@ public class Hizmet : BaseEntity
     public int BolumId { get; set; }
     public Bolum Bolum { get; set; } = null!;
 
+    // Bu hizmeti verebilen doktorlar (çoka çok ilişki)
+    public ICollection<Doktor> Doktorlar { get; set; } = new List<Doktor>();
+
     // Randevu hesaplarında kullanacağım 
     public TimeSpan Sure => TimeSpan.FromMinutes(SureDakika);
 }
