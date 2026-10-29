@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using HastaneRandevu.DataAccess.Abstract;
 using HastaneRandevu.DataAccess.Concrete;
 using HastaneRandevu.DataAccess.Seed;
+using HastaneRandevu.Business.Abstract;
+using HastaneRandevu.Business.Concrete;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,9 @@ builder.Services.AddDbContext<HastaneRandevuContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IDoktorRepository, DoktorRepository>();
 builder.Services.AddScoped<IRandevuRepository, RandevuRepository>();
+
+// Service kayıtları
+builder.Services.AddScoped<IRandevuService, RandevuManager>();
 
 var app = builder.Build();
 

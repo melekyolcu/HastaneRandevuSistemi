@@ -35,6 +35,22 @@ public class RandevuRepository : GenericRepository<Randevu>, IRandevuRepository
         var gununRandevulari = await DoktorunGunlukRandevulariAsync(doktorId, baslangic);
         return gununRandevulari.Any(r => r.CakisiyorMu(baslangic, bitis));
     }
+    
+    // Hasta aynı saatte başka bir doktordan randevu almış olabilir
+    public async Task<bool> HastaninCakismasiVarMiAsync(int hastaId, DateTime baslangic, DateTime bitis)
+    {
+        var gunBaslangici = DateTime.SpecifyKind(baslangic.Date, DateTimeKind.Unspecified);
+        var gunSonu = gunBaslangici.AddDays(1);
+
+        var gununRandevulari = await _tablo
+            .Where(r => r.AktifMi
+                        && r.HastaId == hastaId
+                        && r.BaslangicZamani >= gunBaslangici
+                        && r.BaslangicZamani < gunSonu)
+            .ToListAsync();
+
+        return gununRandevulari.Any(r => r.CakisiyorMu(baslangic, bitis));
+    }
 
     public async Task<List<Randevu>> HastaninRandevulariAsync(int hastaId) =>
         await _tablo
