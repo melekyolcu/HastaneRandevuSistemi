@@ -1,5 +1,8 @@
 using HastaneRandevu.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
+using HastaneRandevu.DataAccess.Abstract;
+using HastaneRandevu.DataAccess.Concrete;
+using HastaneRandevu.DataAccess.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +12,20 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HastaneRandevuContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Repository kayıtları: biri IRandevuRepository isterse RandevuRepository verilir
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IDoktorRepository, DoktorRepository>();
+builder.Services.AddScoped<IRandevuRepository, RandevuRepository>();
+
 var app = builder.Build();
 
+// Geliştirme ortamında veritabanı boşsa örnek verileri yükle
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<HastaneRandevuContext>();
+    await OrnekVeriYukleyici.YukleAsync(context);
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
