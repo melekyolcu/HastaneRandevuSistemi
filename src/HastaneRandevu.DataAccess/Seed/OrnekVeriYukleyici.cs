@@ -129,6 +129,25 @@ public static class OrnekVeriYukleyici
         await context.SaveChangesAsync();
     }
 
+    
+    public const string VarsayilanSifre = "Sifre123";
+
+    // ornek kullanicilara ortak sifre
+    public static async Task VarsayilanSifreleriAyarlaAsync(HastaneRandevuContext context)
+    {
+        var sifresizler = await context.Kullanicilar
+            .Where(k => k.SifreHash == "")
+            .ToListAsync();
+
+        if (sifresizler.Count == 0)
+            return;
+
+        foreach (var kullanici in sifresizler)
+            kullanici.SifreBelirle(VarsayilanSifre);
+
+        await context.SaveChangesAsync();
+    }
+
     // ---- Yardımcı metotlar ----
 
     private static void CalismaSaatleriniEkle(Sube sube)

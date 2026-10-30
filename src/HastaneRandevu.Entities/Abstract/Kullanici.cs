@@ -1,4 +1,5 @@
 using HastaneRandevu.Entities.Enums;
+using System.Security.Cryptography;
 
 namespace HastaneRandevu.Entities.Abstract;
 
@@ -47,7 +48,35 @@ public abstract class Kullanici : BaseEntity
     }
 
     public string Telefon { get; set; } = string.Empty;
-    public string SifreHash { get; set; } = string.Empty;
+        public string SifreHash { get; private set; } = string.Empty;
+
+    private const int HashTekrarSayisi = 100_000;
+
+    // Şifre düz metin olarak saklanmaz rastgele bir salt ile birlikte hash tutulur
+    public void SifreBelirle(string sifre)
+    {
+        if (string.IsNullOrWhiteSpace(sifre) || sifre.Length < 6)
+            throw new ArgumentException("Şifre en az 6 karakter olmalıdır.");
+
+        var tuz = RandomNumberGenerator.GetBytes(16);
+        var ozet = Rfc2898DeriveBytes.Pbkdf2(sifre, tuz, HashTekrarSayisi, HashAlgorithmName.SHA256, 32);
+
+        SifreHash = $"{Convert.ToBase64String(tuz)}.{Convert.ToBase64String(ozet)}";
+    }
+
+    // Girilen şifre aynı saltla tekrar hashlenir ve kayıtlı hashle karşılaştırılır
+    public bool SifreDogruMu(string sifre)
+    {
+        var parcalar = SifreHash.Split('.');
+        if (parcalar.Length != 2 || string.IsNullOrEmpty(sifre))
+            return false;
+
+        var tuz = Convert.FromBase64String(parcalar[0]);
+        var kayitliOzet = Convert.FromBase64String(parcalar[1]);
+        var girilenOzet = Rfc2898DeriveBytes.Pbkdf2(sifre, tuz, HashTekrarSayisi, HashAlgorithmName.SHA256, 32);
+
+        return CryptographicOperations.FixedTimeEquals(kayitliOzet, girilenOzet);
+    }
 
     // Hesaplanan özellik: veritabanında tutulmaz
     public string AdSoyad => $"{Ad} {Soyad}";

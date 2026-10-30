@@ -5,6 +5,7 @@ using HastaneRandevu.DataAccess.Concrete;
 using HastaneRandevu.DataAccess.Seed;
 using HastaneRandevu.Business.Abstract;
 using HastaneRandevu.Business.Concrete;
+using Microsoft.AspNetCore.Authentication.Cookies; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,17 @@ builder.Services.AddScoped<IRandevuRepository, RandevuRepository>();
 
 // Service kayıtları
 builder.Services.AddScoped<IRandevuService, RandevuManager>();
+builder.Services.AddScoped<IKullaniciService, KullaniciManager>(); 
+
+// Giriş sistemi; kullanıcının kim olduğu ve rolü tarayıcıda şifreli bir çerezde tutulur
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Hesap/Giris";
+        options.AccessDeniedPath = "/Hesap/ErisimEngellendi";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
 
 var app = builder.Build();
 
@@ -30,7 +42,9 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<HastaneRandevuContext>();
     await OrnekVeriYukleyici.YukleAsync(context);
+    await OrnekVeriYukleyici.VarsayilanSifreleriAyarlaAsync(context); 
 }
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -42,6 +56,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication(); //"Bu kişi kim?" (Authorization'dan önce olmalı)
 app.UseAuthorization();
 
 app.MapStaticAssets();
