@@ -1,0 +1,56 @@
+@model SubeFormViewModel
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Yeni Şube" : "Şubeyi Düzenle";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-1">@ViewData["Title"]</h2>
+        <p class="text-muted mb-4">@Model.KurumAdi</p>
+
+        <form asp-action="SubeForm" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="KurumId" />
+            <input type="hidden" asp-for="KurumAdi" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Ad" class="form-label"></label>
+                <input asp-for="Ad" class="form-control" />
+                <span asp-validation-for="Ad" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Sehir" class="form-label"></label>
+                <input asp-for="Sehir" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Adres" class="form-label"></label>
+                <textarea asp-for="Adres" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Telefon" class="form-label"></label>
+                <input asp-for="Telefon" class="form-control" />
+                <span asp-validation-for="Telefon" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+                @if (Model.Id == 0)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Vazgeç</a>
+                }
+                else
+                {
+                    <a asp-action="Sube" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Vazgeç</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

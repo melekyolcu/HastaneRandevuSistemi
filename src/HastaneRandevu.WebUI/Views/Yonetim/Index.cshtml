@@ -1,0 +1,50 @@
+@model List<Kurum>
+@{
+    ViewData["Title"] = "Kurum Yönetimi";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Kurumlar</h2>
+    <a asp-action="KurumForm" class="btn btn-primary">+ Yeni Kurum</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Henüz kurum eklenmemiş.</p>
+}
+
+@foreach (var kurum in Model)
+{
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <strong>@kurum.Ad</strong>
+                <span class="badge bg-secondary ms-2">@kurum.Turu.GorunenAd()</span>
+                @if (kurum.CokSubeliMi)
+                {
+                    <span class="badge bg-info ms-1">Çok şubeli</span>
+                }
+            </div>
+            <div class="text-nowrap">
+                <a asp-action="KurumForm" asp-route-id="@kurum.Id" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                <form asp-action="KurumSil" asp-route-id="@kurum.Id" method="post" class="d-inline"
+                      onsubmit="return confirm('Bu kurum silinsin mi?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+
+        <ul class="list-group list-group-flush">
+            @foreach (var sube in kurum.Subeler.OrderBy(s => s.Ad))
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>@sube.Ad <small class="text-muted ms-1">@sube.Sehir</small></span>
+                    <a asp-action="Sube" asp-route-id="@sube.Id" class="btn btn-sm btn-outline-primary">Yönet</a>
+                </li>
+            }
+            <li class="list-group-item">
+                <a asp-action="SubeForm" asp-route-kurumId="@kurum.Id" class="btn btn-sm btn-link px-0">+ Şube Ekle</a>
+            </li>
+        </ul>
+    </div>
+}

@@ -19,10 +19,13 @@ builder.Services.AddDbContext<HastaneRandevuContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IDoktorRepository, DoktorRepository>();
 builder.Services.AddScoped<IRandevuRepository, RandevuRepository>();
+builder.Services.AddScoped<IKurumRepository, KurumRepository>();
+builder.Services.AddScoped<ISubeRepository, SubeRepository>();
 
 // Service kayıtları
 builder.Services.AddScoped<IRandevuService, RandevuManager>();
 builder.Services.AddScoped<IKullaniciService, KullaniciManager>(); 
+builder.Services.AddScoped<IKurumService, KurumManager>();
 
 // Giriş sistemi; kullanıcının kim olduğu ve rolü tarayıcıda şifreli bir çerezde tutulur
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

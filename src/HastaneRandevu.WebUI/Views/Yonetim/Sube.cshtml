@@ -1,0 +1,148 @@
+@model Sube
+@using System.Globalization
+@{
+    ViewData["Title"] = Model.Ad;
+    var tr = new CultureInfo("tr-TR");
+    var gunSirasi = new[]
+    {
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
+        DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+    };
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Kurumlar</a></li>
+        <li class="breadcrumb-item">@Model.Kurum.Ad</li>
+        <li class="breadcrumb-item active">@Model.Ad</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="mb-1">@Model.Ad</h2>
+        <div class="text-muted">
+            @Model.Sehir
+            @if (!string.IsNullOrEmpty(Model.Adres)) { <span>· @Model.Adres</span> }
+            @if (!string.IsNullOrEmpty(Model.Telefon)) { <span>· @Model.Telefon</span> }
+        </div>
+    </div>
+    <div class="text-nowrap">
+        <a asp-action="SubeForm" asp-route-kurumId="@Model.KurumId" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+        <form asp-action="SubeSil" asp-route-id="@Model.Id" method="post" class="d-inline"
+              onsubmit="return confirm('Bu şube silinsin mi?');">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Çalışma saatleri -->
+    <div class="col-lg-5 mb-4">
+        <h4 class="mb-3">Çalışma Saatleri</h4>
+        <ul class="list-group">
+            @foreach (var gun in gunSirasi)
+            {
+                var saat = Model.CalismaSaatleri.FirstOrDefault(c => c.Gun == gun);
+                bool kapali = saat?.KapaliMi ?? true;
+                bool saatAyarliMi = saat is not null && saat.KapanisSaati != default;
+                string acilis = saatAyarliMi ? saat!.AcilisSaati.ToString("HH:mm") : "08:00";
+                string kapanis = saatAyarliMi ? saat!.KapanisSaati.ToString("HH:mm") : "18:00";
+
+                <li class="list-group-item">
+                    <form asp-action="CalismaSaatiKaydet" method="post" class="row g-2 align-items-center">
+                        <input type="hidden" name="subeId" value="@Model.Id" />
+                        <input type="hidden" name="gun" value="@gun" />
+
+                        <div class="col-3 fw-semibold">@tr.DateTimeFormat.GetDayName(gun)</div>
+                        <div class="col-3">
+                            <input type="time" name="acilis" value="@acilis" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-3">
+                            <input type="time" name="kapanis" value="@kapanis" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-2">
+                            <div class="form-check mb-0">
+                                <input type="checkbox" name="kapaliMi" value="true" class="form-check-input" id="kapali-@gun" checked="@kapali" />
+                                <input type="hidden" name="kapaliMi" value="false" />
+                                <label class="form-check-label small" for="kapali-@gun">Kapalı</label>
+                            </div>
+                        </div>
+                        <div class="col-1 text-end">
+                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Kaydet">✓</button>
+                        </div>
+                    </form>
+                </li>
+            }
+        </ul>
+    </div>
+
+    <!-- Bölümler ve hizmetler -->
+    <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Bölümler ve Hizmetler</h4>
+            <a asp-action="BolumForm" asp-route-subeId="@Model.Id" class="btn btn-sm btn-primary">+ Bölüm Ekle</a>
+        </div>
+
+        @if (!Model.Bolumler.Any())
+        {
+            <p class="text-muted">Bu şubede henüz bölüm yok.</p>
+        }
+
+        @foreach (var bolum in Model.Bolumler.OrderBy(b => b.Ad))
+        {
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>@bolum.Ad</strong>
+                        <small class="text-muted ms-1">@bolum.Aciklama</small>
+                    </div>
+                    <div class="text-nowrap">
+                        <a asp-action="BolumForm" asp-route-subeId="@Model.Id" asp-route-id="@bolum.Id" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                        <form asp-action="BolumSil" asp-route-id="@bolum.Id" asp-route-subeId="@Model.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Bu bölüm silinsin mi?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                        </form>
+                    </div>
+                </div>
+
+                @if (bolum.Hizmetler.Any())
+                {
+                    <table class="table table-sm mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Hizmet</th>
+                                <th>Kategori</th>
+                                <th>Süre</th>
+                                <th>Ücret</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var hizmet in bolum.Hizmetler.OrderBy(h => h.Ad))
+                            {
+                                <tr>
+                                    <td class="ps-3">@hizmet.Ad</td>
+                                    <td>@hizmet.Kategori.GorunenAd()</td>
+                                    <td>@hizmet.SureDakika dk</td>
+                                    <td>@hizmet.Ucret.ToString("N2", tr) ₺</td>
+                                    <td class="text-end text-nowrap pe-3">
+                                        <a asp-action="HizmetForm" asp-route-bolumId="@bolum.Id" asp-route-id="@hizmet.Id" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                                        <form asp-action="HizmetSil" asp-route-id="@hizmet.Id" asp-route-subeId="@Model.Id" method="post" class="d-inline"
+                                              onsubmit="return confirm('Bu hizmet silinsin mi?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                <div class="card-body py-2">
+                    <a asp-action="HizmetForm" asp-route-bolumId="@bolum.Id" class="btn btn-sm btn-link px-0">+ Hizmet Ekle</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
