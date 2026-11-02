@@ -21,11 +21,13 @@ builder.Services.AddScoped<IDoktorRepository, DoktorRepository>();
 builder.Services.AddScoped<IRandevuRepository, RandevuRepository>();
 builder.Services.AddScoped<IKurumRepository, KurumRepository>();
 builder.Services.AddScoped<ISubeRepository, SubeRepository>();
+builder.Services.AddScoped<IBolumRepository, BolumRepository>();
 
 // Service kayıtları
 builder.Services.AddScoped<IRandevuService, RandevuManager>();
 builder.Services.AddScoped<IKullaniciService, KullaniciManager>(); 
 builder.Services.AddScoped<IKurumService, KurumManager>();
+builder.Services.AddScoped<ICalisanService, CalisanManager>();
 
 // Giriş sistemi; kullanıcının kim olduğu ve rolü tarayıcıda şifreli bir çerezde tutulur
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

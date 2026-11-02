@@ -1,0 +1,18 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    string Aktif(string c, string a) => controller == c && action == a ? "active" : "";
+}
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link @Aktif("Yonetim", "Index")" asp-controller="Yonetim" asp-action="Index">Kurumlar</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @Aktif("Calisanlar", "Index")" asp-controller="Calisanlar" asp-action="Index">Doktorlar</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @Aktif("Calisanlar", "Personel")" asp-controller="Calisanlar" asp-action="Personel">Sağlık Personeli</a>
+    </li>
+</ul>

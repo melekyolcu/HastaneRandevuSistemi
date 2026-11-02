@@ -1,0 +1,50 @@
+@model List<SaglikPersoneli>
+@{
+    ViewData["Title"] = "Sağlık Personeli";
+}
+
+<partial name="_YonetimMenu" />
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Sağlık Personeli</h2>
+    <a asp-action="PersonelForm" class="btn btn-primary">+ Yeni Personel</a>
+</div>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Henüz personel eklenmemiş.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>Görev</th>
+                    <th>Sicil No</th>
+                    <th>E-posta</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var personel in Model)
+                {
+                    <tr>
+                        <td><strong>@personel.AdSoyad</strong></td>
+                        <td>@personel.Gorev</td>
+                        <td>@personel.SicilNo</td>
+                        <td>@personel.Eposta</td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="PersonelForm" asp-route-id="@personel.Id" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                            <form asp-action="PersonelSil" asp-route-id="@personel.Id" method="post" class="d-inline"
+                                  onsubmit="return confirm('Bu personel silinsin mi?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -38,10 +38,14 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         await _context.SaveChangesAsync();
     }
 
-    public async Task GuncelleAsync(T varlik)
+      public async Task GuncelleAsync(T varlik)
     {
         varlik.GuncellemeTarihi = DateTime.UtcNow;
-        _tablo.Update(varlik);
+
+      
+        if (_context.Entry(varlik).State == EntityState.Detached)
+            _tablo.Update(varlik);
+
         await _context.SaveChangesAsync();
     }
 

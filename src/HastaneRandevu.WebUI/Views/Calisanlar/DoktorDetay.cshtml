@@ -1,0 +1,135 @@
+@model DoktorDetayViewModel
+@{
+    var doktor = Model.Doktor;
+    ViewData["Title"] = $"{doktor.Unvan} {doktor.AdSoyad}";
+    var subeSaatleri = doktor.Bolum.Sube.CalismaSaatleri;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Doktorlar</a></li>
+        <li class="breadcrumb-item active">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<div class="mb-4">
+    <h2 class="mb-1">@doktor.Unvan @doktor.AdSoyad</h2>
+    <div class="text-muted">@doktor.UzmanlikAlani · @doktor.Bolum.Ad · @doktor.Bolum.Sube.Ad</div>
+</div>
+
+<div class="row">
+    <!-- Hizmetler -->
+    <div class="col-lg-5 mb-4">
+        <h4 class="mb-3">Verdiği Hizmetler</h4>
+
+        @if (!Model.VerilebilecekHizmetler.Any())
+        {
+            <p class="text-muted">@doktor.Bolum.Ad bölümünde henüz hizmet tanımlanmamış.</p>
+        }
+        else
+        {
+            <form asp-action="HizmetleriKaydet" method="post">
+                <input type="hidden" name="doktorId" value="@doktor.Id" />
+
+                <ul class="list-group mb-3">
+                    @foreach (var hizmet in Model.VerilebilecekHizmetler)
+                    {
+                        bool secili = doktor.Hizmetler.Any(h => h.Id == hizmet.Id);
+                        <li class="list-group-item">
+                            <div class="form-check mb-0">
+                                <input type="checkbox" name="hizmetIdleri" value="@hizmet.Id" id="hizmet-@hizmet.Id"
+                                       class="form-check-input" checked="@secili" />
+                                <label for="hizmet-@hizmet.Id" class="form-check-label">
+                                    @hizmet.Ad <small class="text-muted">(@hizmet.SureDakika dk)</small>
+                                </label>
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                <button type="submit" class="btn btn-primary">Hizmetleri Kaydet</button>
+            </form>
+        }
+    </div>
+
+    <!-- Uygunluk saatleri -->
+    <div class="col-lg-7">
+        <h4 class="mb-3">Uygunluk Saatleri</h4>
+
+        @if (!doktor.UygunlukZamanlari.Any())
+        {
+            <p class="text-muted">Henüz uygunluk saati tanımlanmamış. Hastalar bu doktordan randevu alamaz.</p>
+        }
+        else
+        {
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Gün</th>
+                        <th>Saat</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var gun in TarihHelper.HaftaGunleri)
+                    {
+                        foreach (var dilim in doktor.UygunlukZamanlari.Where(u => u.Gun == gun).OrderBy(u => u.BaslangicSaati))
+                        {
+                            <tr>
+                                <td>@gun.GunAdi()</td>
+                                <td>@dilim.BaslangicSaati.ToString("HH:mm") - @dilim.BitisSaati.ToString("HH:mm")</td>
+                                <td class="text-end">
+                                    <form asp-action="UygunlukSil" asp-route-id="@dilim.Id" asp-route-doktorId="@doktor.Id" method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title">Yeni uygunluk saati</h6>
+
+                <form asp-action="UygunlukEkle" method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="doktorId" value="@doktor.Id" />
+
+                    <div class="col-sm-4">
+                        <label class="form-label small">Gün</label>
+                        <select name="gun" class="form-select">
+                            @foreach (var gun in TarihHelper.HaftaGunleri)
+                            {
+                                <option value="@gun">@gun.GunAdi()</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="form-label small">Başlangıç</label>
+                        <input type="time" name="baslangic" value="09:00" class="form-control" required />
+                    </div>
+                    <div class="col-sm-3">
+                        <label class="form-label small">Bitiş</label>
+                        <input type="time" name="bitis" value="17:00" class="form-control" required />
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-primary w-100">Ekle</button>
+                    </div>
+                </form>
+
+                <div class="form-text mt-3">
+                    <strong>@doktor.Bolum.Sube.Ad çalışma saatleri:</strong><br />
+                    @foreach (var gun in TarihHelper.HaftaGunleri)
+                    {
+                        var saat = subeSaatleri.FirstOrDefault(c => c.Gun == gun);
+                        <span class="me-3 text-nowrap">
+                            @gun.GunAdi(): @(saat is null || saat.KapaliMi ? "Kapalı" : $"{saat.AcilisSaati:HH:mm}-{saat.KapanisSaati:HH:mm}")
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

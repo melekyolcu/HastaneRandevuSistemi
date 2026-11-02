@@ -9,4 +9,5 @@ public interface IDoktorRepository : IGenericRepository<Doktor>
 
     /// Belirli bir hizmeti verebilen doktorları listeler (hasta randevu alırken).
     Task<List<Doktor>> HizmeteGoreListeleAsync(int hizmetId);
+    Task<List<Doktor>> TumunuDetayliListeleAsync();
 }
