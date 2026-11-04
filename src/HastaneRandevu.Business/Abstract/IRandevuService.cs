@@ -17,4 +17,9 @@ public interface IRandevuService
     Task<IslemSonucu> TamamlaAsync(int randevuId, int doktorId);
     Task<List<Randevu>> OnayBekleyenlerAsync(int doktorId);
     Task<List<Randevu>> DoktorunGunlukRandevulariAsync(int doktorId, DateTime gun);
+    
+    // Randevu alma ekranı ve personel için
+    Task<List<Bolum>> RandevuyaAcikBolumlerAsync();
+    Task<List<Doktor>> HizmetiVerenDoktorlarAsync(int hizmetId);
+    Task<List<Randevu>> GununTumRandevulariAsync(DateTime gun);
 }

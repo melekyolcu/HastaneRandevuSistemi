@@ -67,4 +67,20 @@ public class RandevuRepository : GenericRepository<Randevu>, IRandevuRepository
             .Include(r => r.Hizmet)
             .OrderBy(r => r.BaslangicZamani)
             .ToListAsync();
+
+    
+    // Sağlık personeli ekranı için: o günkü bütün doktorların randevuları
+    public async Task<List<Randevu>> GununTumRandevulariAsync(DateTime gun)
+    {
+        var gunBaslangici = DateTime.SpecifyKind(gun.Date, DateTimeKind.Unspecified);
+        var gunSonu = gunBaslangici.AddDays(1);
+
+        return await _tablo
+            .Where(r => r.AktifMi && r.BaslangicZamani >= gunBaslangici && r.BaslangicZamani < gunSonu)
+            .Include(r => r.Doktor).ThenInclude(d => d.Bolum)
+            .Include(r => r.Hasta)
+            .Include(r => r.Hizmet)
+            .OrderBy(r => r.BaslangicZamani)
+            .ToListAsync();
+    }        
 }

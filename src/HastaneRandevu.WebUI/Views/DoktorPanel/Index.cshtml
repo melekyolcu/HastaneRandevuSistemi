@@ -1,0 +1,119 @@
+@model DoktorPanelViewModel
+@{
+    ViewData["Title"] = "Randevularım";
+    var tarihStr = Model.Tarih.ToString("yyyy-MM-dd");
+}
+
+<h2 class="mb-4">Randevularım</h2>
+
+<!-- Onay bekleyenler -->
+<h4 class="mb-3">
+    Onay Bekleyenler
+    <span class="badge bg-warning text-dark">@Model.OnayBekleyenler.Count</span>
+</h4>
+
+@if (!Model.OnayBekleyenler.Any())
+{
+    <p class="text-muted mb-5">Onay bekleyen randevu yok.</p>
+}
+else
+{
+    <div class="list-group mb-5">
+        @foreach (var r in Model.OnayBekleyenler)
+        {
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <div>
+                        <strong>@r.BaslangicZamani.TarihYaz() · @r.BaslangicZamani.ToString("HH:mm")</strong><br />
+                        @r.Hasta.AdSoyad · @r.Hizmet.Ad <small class="text-muted">(@r.SureDakika dk)</small>
+                        @if (!string.IsNullOrEmpty(r.HastaNotu))
+                        {
+                            <div class="small text-muted mt-1">Not: @r.HastaNotu</div>
+                        }
+                    </div>
+                    <div class="d-flex gap-2 align-items-start">
+                        <form asp-action="Onayla" method="post">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <input type="hidden" name="tarih" value="@tarihStr" />
+                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
+                        </form>
+                        <form asp-action="Reddet" method="post" class="d-flex gap-1">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <input type="hidden" name="tarih" value="@tarihStr" />
+                            <input name="neden" class="form-control form-control-sm" placeholder="Red nedeni" required />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Reddet</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Günlük program -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h4 class="mb-0">@Model.Tarih.TarihYaz()</h4>
+
+    <div class="d-flex gap-2 align-items-center">
+        <a asp-action="Index" asp-route-tarih="@Model.Tarih.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">‹ Önceki</a>
+        <form asp-action="Index" method="get" class="d-flex gap-1">
+            <input type="date" name="tarih" value="@tarihStr" class="form-control form-control-sm" onchange="this.form.submit()" />
+        </form>
+        <a asp-action="Index" asp-route-tarih="@Model.Tarih.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">Sonraki ›</a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-primary">Bugün</a>
+    </div>
+</div>
+
+@if (!Model.GununRandevulari.Any())
+{
+    <p class="text-muted">Bu gün için randevu yok.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Saat</th>
+                    <th>Hasta</th>
+                    <th>Hizmet</th>
+                    <th>Durum</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.GununRandevulari)
+                {
+                    <tr>
+                        <td class="text-nowrap">@r.BaslangicZamani.ToString("HH:mm") - @r.BitisZamani.ToString("HH:mm")</td>
+                        <td>
+                            @r.Hasta.AdSoyad
+                            @if (!string.IsNullOrEmpty(r.HastaNotu))
+                            {
+                                <div class="small text-muted">Not: @r.HastaNotu</div>
+                            }
+                        </td>
+                        <td>@r.Hizmet.Ad</td>
+                        <td>
+                            <span class="badge bg-@r.Durum.Renk()">@r.Durum.GorunenAd()</span>
+                            @if (!string.IsNullOrEmpty(r.RedNedeni))
+                            {
+                                <div class="small text-muted">@r.RedNedeni</div>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (r.Durum == RandevuDurumu.Onaylandi && r.BaslangicZamani <= DateTime.Now)
+                            {
+                                <form asp-action="Tamamla" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@r.Id" />
+                                    <input type="hidden" name="tarih" value="@tarihStr" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Tamamlandı</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -11,18 +11,21 @@ public class RandevuManager : IRandevuService
     private readonly IDoktorRepository _doktorRepository;
     private readonly IGenericRepository<Hasta> _hastaRepository;
     private readonly IGenericRepository<Hizmet> _hizmetRepository;
+    private readonly IBolumRepository _bolumRepository;
 
     // Gerekli repository'ler dışarıdan verilir (dependency injection)
-    public RandevuManager(
+        public RandevuManager(
         IRandevuRepository randevuRepository,
         IDoktorRepository doktorRepository,
         IGenericRepository<Hasta> hastaRepository,
-        IGenericRepository<Hizmet> hizmetRepository)
+        IGenericRepository<Hizmet> hizmetRepository,
+        IBolumRepository bolumRepository)
     {
         _randevuRepository = randevuRepository;
         _doktorRepository = doktorRepository;
         _hastaRepository = hastaRepository;
         _hizmetRepository = hizmetRepository;
+        _bolumRepository = bolumRepository;
     }
 
     // ---------------- Hasta işlemleri ----------------
@@ -163,7 +166,17 @@ public class RandevuManager : IRandevuService
 
     public Task<List<Randevu>> DoktorunGunlukRandevulariAsync(int doktorId, DateTime gun) =>
         _randevuRepository.DoktorunGunlukRandevulariAsync(doktorId, gun);
+    
+    // ---------------- Listeler ----------------
 
+    public Task<List<Bolum>> RandevuyaAcikBolumlerAsync() =>
+        _bolumRepository.HizmetleriyleListeleAsync();
+
+    public Task<List<Doktor>> HizmetiVerenDoktorlarAsync(int hizmetId) =>
+        _doktorRepository.HizmeteGoreListeleAsync(hizmetId);
+
+    public Task<List<Randevu>> GununTumRandevulariAsync(DateTime gun) =>
+        _randevuRepository.GununTumRandevulariAsync(gun);
     // ---------------- Yardımcı metotlar ----------------
 
     // Doktor sadece kendine ait randevular üzerinde işlem yapabilir

@@ -1,0 +1,80 @@
+@model Doktor
+@{
+    var subeSaatleri = Model.Bolum.Sube.CalismaSaatleri;
+}
+
+@if (!Model.UygunlukZamanlari.Any())
+{
+    <p class="text-muted">Henüz uygunluk saati tanımlanmamış. Hastalar randevu alamaz.</p>
+}
+else
+{
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr>
+                <th>Gün</th>
+                <th>Saat</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var gun in TarihHelper.HaftaGunleri)
+            {
+                foreach (var dilim in Model.UygunlukZamanlari.Where(u => u.Gun == gun).OrderBy(u => u.BaslangicSaati))
+                {
+                    <tr>
+                        <td>@gun.GunAdi()</td>
+                        <td>@dilim.BaslangicSaati.ToString("HH:mm") - @dilim.BitisSaati.ToString("HH:mm")</td>
+                        <td class="text-end">
+                            <form asp-action="UygunlukSil" asp-route-id="@dilim.Id" asp-route-doktorId="@Model.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+<div class="card">
+    <div class="card-body">
+        <h6 class="card-title">Yeni uygunluk saati</h6>
+
+        <form asp-action="UygunlukEkle" method="post" class="row g-2 align-items-end">
+            <input type="hidden" name="doktorId" value="@Model.Id" />
+
+            <div class="col-sm-4">
+                <label class="form-label small">Gün</label>
+                <select name="gun" class="form-select">
+                    @foreach (var gun in TarihHelper.HaftaGunleri)
+                    {
+                        <option value="@gun">@gun.GunAdi()</option>
+                    }
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <label class="form-label small">Başlangıç</label>
+                <input type="time" name="baslangic" value="09:00" class="form-control" required />
+            </div>
+            <div class="col-sm-3">
+                <label class="form-label small">Bitiş</label>
+                <input type="time" name="bitis" value="17:00" class="form-control" required />
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary w-100">Ekle</button>
+            </div>
+        </form>
+
+        <div class="form-text mt-3">
+            <strong>@Model.Bolum.Sube.Ad çalışma saatleri:</strong><br />
+            @foreach (var gun in TarihHelper.HaftaGunleri)
+            {
+                var saat = subeSaatleri.FirstOrDefault(c => c.Gun == gun);
+                <span class="me-3 text-nowrap">
+                    @gun.GunAdi(): @(saat is null || saat.KapaliMi ? "Kapalı" : $"{saat.AcilisSaati:HH:mm}-{saat.KapanisSaati:HH:mm}")
+                </span>
+            }
+        </div>
+    </div>
+</div>

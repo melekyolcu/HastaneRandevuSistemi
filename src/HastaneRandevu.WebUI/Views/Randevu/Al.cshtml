@@ -1,0 +1,130 @@
+@model RandevuAlViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Randevu Al";
+    var tr = new CultureInfo("tr-TR");
+    var tarihStr = Model.Tarih.ToString("yyyy-MM-dd");
+    var bugunStr = DateTime.Today.ToString("yyyy-MM-dd");
+    var secilenDoktor = Model.Doktorlar.FirstOrDefault(d => d.Id == Model.DoktorId);
+}
+
+<h2 class="mb-4">Randevu Al</h2>
+
+<!-- 1. Adım: Hizmet -->
+<div class="card mb-4">
+    <div class="card-header"><strong>1.</strong> Hizmet seçin</div>
+    <div class="card-body">
+        @if (!Model.Bolumler.Any())
+        {
+            <p class="text-muted mb-0">Şu an randevu alınabilecek bir hizmet bulunmuyor.</p>
+        }
+        else
+        {
+            <form asp-action="Al" method="get">
+                <select name="hizmetId" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Hizmet seçin --</option>
+                    @foreach (var bolum in Model.Bolumler)
+                    {
+                        <optgroup label="@bolum.Sube.Kurum.Ad · @bolum.Sube.Ad · @bolum.Ad">
+                            @foreach (var hizmet in bolum.Hizmetler.OrderBy(x => x.Ad))
+                            {
+                                <option value="@hizmet.Id" selected="@(hizmet.Id == Model.HizmetId)">
+                                    @hizmet.Ad (@hizmet.SureDakika dk, @hizmet.Ucret.ToString("N0", tr) ₺)
+                                </option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </form>
+        }
+    </div>
+</div>
+
+<!-- 2. Adım: Doktor -->
+@if (Model.HizmetId is not null)
+{
+    <div class="card mb-4">
+        <div class="card-header"><strong>2.</strong> Doktor seçin</div>
+        <div class="card-body">
+            @if (!Model.Doktorlar.Any())
+            {
+                <p class="text-muted mb-0">Bu hizmeti veren bir doktor bulunmuyor.</p>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var doktor in Model.Doktorlar)
+                    {
+                        <a asp-action="Al" asp-route-hizmetId="@Model.HizmetId" asp-route-doktorId="@doktor.Id" asp-route-tarih="@tarihStr"
+                           class="list-group-item list-group-item-action @(doktor.Id == Model.DoktorId ? "active" : "")">
+                            <strong>@doktor.Unvan @doktor.AdSoyad</strong>
+                            <small class="ms-2 @(doktor.Id == Model.DoktorId ? "" : "text-muted")">@doktor.UzmanlikAlani · @doktor.Bolum.Ad</small>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- 3. Adım: Gün ve saat -->
+@if (Model.HizmetId is not null && secilenDoktor is not null)
+{
+    <div class="card mb-4">
+        <div class="card-header"><strong>3.</strong> Gün ve saat seçin</div>
+        <div class="card-body">
+
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                @if (Model.Tarih > DateTime.Today)
+                {
+                    <a asp-action="Al" asp-route-hizmetId="@Model.HizmetId" asp-route-doktorId="@Model.DoktorId"
+                       asp-route-tarih="@Model.Tarih.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">‹ Önceki gün</a>
+                }
+                <form asp-action="Al" method="get">
+                    <input type="hidden" name="hizmetId" value="@Model.HizmetId" />
+                    <input type="hidden" name="doktorId" value="@Model.DoktorId" />
+                    <input type="date" name="tarih" value="@tarihStr" min="@bugunStr" class="form-control form-control-sm"
+                           onchange="this.form.submit()" />
+                </form>
+                <a asp-action="Al" asp-route-hizmetId="@Model.HizmetId" asp-route-doktorId="@Model.DoktorId"
+                   asp-route-tarih="@Model.Tarih.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">Sonraki gün ›</a>
+                <span class="ms-2 fw-semibold">@Model.Tarih.TarihYaz()</span>
+            </div>
+
+            @if (!Model.BosSaatler.Any())
+            {
+                <p class="text-muted mb-0">Bu gün için boş saat yok. Lütfen başka bir gün seçin.</p>
+            }
+            else
+            {
+                <form asp-action="Olustur" method="post">
+                    <input type="hidden" name="hizmetId" value="@Model.HizmetId" />
+                    <input type="hidden" name="doktorId" value="@Model.DoktorId" />
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @foreach (var saat in Model.BosSaatler)
+                        {
+                            var id = $"saat-{saat:HHmm}";
+                            <input type="radio" class="btn-check" name="baslangic" id="@id" value="@saat.ToString("s")" required />
+                            <label class="btn btn-outline-primary" for="@id">@saat.ToString("HH:mm")</label>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="hastaNotu" class="form-label">Doktora not (isteğe bağlı)</label>
+                        <textarea id="hastaNotu" name="hastaNotu" class="form-control" rows="2" maxlength="500"
+                                  placeholder="Şikayetinizi kısaca yazabilirsiniz"></textarea>
+                    </div>
+
+                    <div class="alert alert-light border">
+                        <strong>@Model.Hizmet?.Ad</strong> · @secilenDoktor.Unvan @secilenDoktor.AdSoyad<br />
+                        Süre: @Model.Hizmet?.SureDakika dk · Ücret: @Model.Hizmet?.Ucret.ToString("N2", tr) ₺
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Randevu Talebi Oluştur</button>
+                    <div class="form-text">Randevunuz doktor onayladıktan sonra kesinleşir.</div>
+                </form>
+            }
+        </div>
+    </div>
+}

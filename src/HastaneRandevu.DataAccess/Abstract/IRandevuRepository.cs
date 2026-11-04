@@ -9,4 +9,5 @@ public interface IRandevuRepository : IGenericRepository<Randevu>
     Task<bool> HastaninCakismasiVarMiAsync(int hastaId, DateTime baslangic, DateTime bitis);
     Task<List<Randevu>> HastaninRandevulariAsync(int hastaId);
     Task<List<Randevu>> OnayBekleyenlerAsync(int doktorId);
+    Task<List<Randevu>> GununTumRandevulariAsync(DateTime gun);
 }

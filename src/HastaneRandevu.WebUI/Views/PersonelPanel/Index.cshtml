@@ -1,0 +1,54 @@
+@model GunlukRandevularViewModel
+@{
+    ViewData["Title"] = "Günlük Randevular";
+    var tarihStr = Model.Tarih.ToString("yyyy-MM-dd");
+}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <h2 class="mb-0">@Model.Tarih.TarihYaz()</h2>
+
+    <div class="d-flex gap-2 align-items-center">
+        <a asp-action="Index" asp-route-tarih="@Model.Tarih.AddDays(-1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">‹ Önceki</a>
+        <form asp-action="Index" method="get">
+            <input type="date" name="tarih" value="@tarihStr" class="form-control form-control-sm" onchange="this.form.submit()" />
+        </form>
+        <a asp-action="Index" asp-route-tarih="@Model.Tarih.AddDays(1).ToString("yyyy-MM-dd")" class="btn btn-sm btn-outline-secondary">Sonraki ›</a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-primary">Bugün</a>
+    </div>
+</div>
+
+@if (!Model.Randevular.Any())
+{
+    <p class="text-muted">Bu gün için randevu yok.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Saat</th>
+                    <th>Doktor</th>
+                    <th>Hasta</th>
+                    <th>Hizmet</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Randevular)
+                {
+                    <tr>
+                        <td class="text-nowrap">@r.BaslangicZamani.ToString("HH:mm") - @r.BitisZamani.ToString("HH:mm")</td>
+                        <td>
+                            @r.Doktor.Unvan @r.Doktor.AdSoyad<br />
+                            <small class="text-muted">@r.Doktor.Bolum.Ad</small>
+                        </td>
+                        <td>@r.Hasta.AdSoyad</td>
+                        <td>@r.Hizmet.Ad</td>
+                        <td><span class="badge bg-@r.Durum.Renk()">@r.Durum.GorunenAd()</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

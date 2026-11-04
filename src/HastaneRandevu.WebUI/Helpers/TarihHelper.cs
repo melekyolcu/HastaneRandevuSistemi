@@ -14,4 +14,7 @@ public static class TarihHelper
     };
 
     public static string GunAdi(this DayOfWeek gun) => Turkce.DateTimeFormat.GetDayName(gun);
+    
+    // Örneiğin "4 Kasım 2026, Çarşamba"
+    public static string TarihYaz(this DateTime tarih) => tarih.ToString("d MMMM yyyy, dddd", Turkce);
 }
